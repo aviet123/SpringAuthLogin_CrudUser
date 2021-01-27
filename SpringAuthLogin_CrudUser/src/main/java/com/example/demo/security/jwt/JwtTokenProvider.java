@@ -3,8 +3,12 @@ package com.example.demo.security.jwt;
 import com.example.demo.security.service.CustomUserDetails;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -18,21 +22,21 @@ public class JwtTokenProvider {
 
     private final String JWT_SECRET = "viet";
 
-    private final Long JWT_EXPIRATION = 604800000L;
+    private final int JWT_EXPIRATION = 0;
 
-    private final Long REFRESH_EXPIRATION_DATE = 9000000l;
+    private final int REFRESH_EXPIRATION_DATE = 9000000;
 
 
     public String generateToken(CustomUserDetails userDetails){
         return Jwts.builder()
                     .setSubject(userDetails.getUsername())
                     .setIssuedAt(new Date())
-                    .setExpiration(new Date((new Date()).getTime() + JWT_EXPIRATION))
+                    .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                     .signWith(SignatureAlgorithm.HS256, JWT_SECRET)
                     .compact();
     }
 
-    public String getUserIdFromToken(String token){
+    public String getUsernameFromToken(String token){
         Claims claims = Jwts.parser()
                             .setSigningKey(JWT_SECRET)
                             .parseClaimsJws(token)
@@ -40,19 +44,13 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    public String doGenerateRefreshToken(CustomUserDetails userDetails, String subject){
-        Map<String, Object> claims = new HashMap<>();
-        Collection<? extends GrantedAuthority> roles = userDetails.getAuthorities();
-        if (roles.contains(new SimpleGrantedAuthority("ROLE_USER"))) {
-            claims.put("isUser", true);
-        }
+    public String doGenerateRefreshToken(UserDetails userDetails){
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+REFRESH_EXPIRATION_DATE))
-                .signWith(SignatureAlgorithm.HS256,JWT_SECRET).compact();
-
+                .signWith(SignatureAlgorithm.HS256,JWT_SECRET)
+                .compact();
     }
 
     public boolean validateToken(String authToken){

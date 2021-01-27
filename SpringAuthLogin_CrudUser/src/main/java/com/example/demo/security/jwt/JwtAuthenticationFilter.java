@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getTokenFromRequest(httpServletRequest);
 
             if (jwt == null && jwtTokenProvider.validateToken(jwt)) {
-                String username = jwtTokenProvider.getUserIdFromToken(jwt);
+                String username = jwtTokenProvider.getUsernameFromToken(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (userDetails != null) {
@@ -46,25 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
-        } catch (ExpiredJwtException ex){
-//            String isRefreshToken = httpServletRequest.getHeader("isRefreshToken");
-//            String requestURL = httpServletRequest.getRequestURL().toString();
-//
-//            if (isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("refreshtoken")){
-//                allowForRefreshToken(ex, httpServletRequest);
-//            }
         } catch (Exception ex){
             log.error("failed to set user authentication", ex);
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 
-//    private void allowForRefreshToken(ExpiredJwtException ex, HttpServletRequest httpServletRequest) {
-//        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
-//                = new UsernamePasswordAuthenticationToken(null, null, null);
-//        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-//        httpServletRequest.setAttribute("claims",ex.getClaims());
-//    }
 
     private String getTokenFromRequest(HttpServletRequest httpServletRequest) {
         String bearerToken = httpServletRequest.getHeader("Authorization");

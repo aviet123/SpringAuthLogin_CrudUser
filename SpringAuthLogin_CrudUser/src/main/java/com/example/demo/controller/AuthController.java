@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.User;
 import com.example.demo.payload.LoginRequest;
 import com.example.demo.payload.LoginResponse;
 import com.example.demo.security.jwt.JwtTokenProvider;
 import com.example.demo.security.service.CustomUserDetails;
+import com.example.demo.security.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.impl.DefaultClaims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +23,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class AuthController {
+
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -37,16 +43,16 @@ public class AuthController {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken((CustomUserDetails) authentication.getPrincipal());
-        return ResponseEntity.ok(new LoginResponse(jwt));
+        return ResponseEntity.ok(jwt);
     }
 
-//    @GetMapping("/refreshtoken")
-//    public ResponseEntity<?> refreshToken(HttpServletRequest httpServletRequest){
-//        DefaultClaims claims = (DefaultClaims) httpServletRequest.getAttribute("claims");
-//        Map<String, Object> expectMap = getMapFromIoJsonwebtokenClaims(claims);
-//        String jwt = tokenProvider.doGenerateRefreshToken(expectMap,expectMap.get("sub").toString());
-//        return ResponseEntity.ok(jwt);
-//    }
+    @GetMapping("/refreshtoken")
+    public ResponseEntity<?> refreshToken(){
+       String username = SecurityContextHolder.getContext().getAuthentication().getName();
+       UserDetails user = userDetailsService.loadUserByUsername(username);
+       String jwt = tokenProvider.doGenerateRefreshToken(user);
+        return ResponseEntity.ok(jwt);
+    }
 //
 //    private Map<String, Object> getMapFromIoJsonwebtokenClaims(DefaultClaims claims) {
 //        Map<String, Object> expectMap = new HashMap<>();
