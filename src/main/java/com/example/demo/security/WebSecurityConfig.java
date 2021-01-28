@@ -47,9 +47,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .csrf()
                     .disable().authorizeRequests() // ngan chan request tu domain khac
                             .antMatchers("/api/login").permitAll()
-                            .antMatchers("/api/refreshtoken").permitAll()
                             .anyRequest().authenticated();
-
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 

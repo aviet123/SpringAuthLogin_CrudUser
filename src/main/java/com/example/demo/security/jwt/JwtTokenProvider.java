@@ -22,12 +22,8 @@ public class JwtTokenProvider {
 
     private final String JWT_SECRET = "viet";
 
-    private final int JWT_EXPIRATION = 0;
-
-    private final int REFRESH_EXPIRATION_DATE = 9000000;
-
-
     public String generateToken(CustomUserDetails userDetails){
+        int JWT_EXPIRATION = 0;
         return Jwts.builder()
                     .setSubject(userDetails.getUsername())
                     .setIssuedAt(new Date())
@@ -45,10 +41,11 @@ public class JwtTokenProvider {
     }
 
     public String doGenerateRefreshToken(UserDetails userDetails){
+        int REFRESH_EXPIRATION_DATE = 9000000;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+REFRESH_EXPIRATION_DATE))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis()+ REFRESH_EXPIRATION_DATE))
                 .signWith(SignatureAlgorithm.HS256,JWT_SECRET)
                 .compact();
     }
@@ -57,7 +54,9 @@ public class JwtTokenProvider {
         try {
             Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(authToken);
             return true;
-        }catch (MalformedJwtException ex){
+        }catch (SignatureException ex){
+            log.error("Invalid JWT signature"+ex.getMessage());
+        } catch (MalformedJwtException ex){
             log.error("Invalid JWT token");
         }catch (ExpiredJwtException ex){
             log.error("Expired JWT token");

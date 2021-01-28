@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getTokenFromRequest(httpServletRequest);
 
-            if (jwt == null && jwtTokenProvider.validateToken(jwt)) {
+            if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
                 String username = jwtTokenProvider.getUsernameFromToken(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -46,8 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
-        } catch (Exception ex){
-            log.error("failed to set user authentication", ex);
+        }catch (ExpiredJwtException expiredJwtException){
+            logger.warn("Expired JWT" + expiredJwtException);
+        }catch (Exception ex){
+            logger.error("failed to set user authentication", ex);
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }

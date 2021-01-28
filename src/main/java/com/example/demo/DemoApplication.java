@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.model.User;
+import com.example.demo.payload.TokenRefresh;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -13,9 +14,5 @@ public class DemoApplication {
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
-
-    @Autowired
-    UserRepository userRepository;
-
 
 }
